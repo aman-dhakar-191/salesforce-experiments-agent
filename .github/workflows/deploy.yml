@@ -48,12 +48,12 @@ jobs:
       - name: Validate (dry run)
         if: github.event_name == 'pull_request' && steps.changes.outputs.has_changes == 'true'
         run: |
-          sf project deploy start --source-dir force-app --dry-run --wait 30 --target-org ci
+          echo "${{ steps.changes.outputs.files }}" | xargs -I {} sf project deploy start --source-dir {} --dry-run --wait 30 --target-org ci
 
       - name: Deploy changed components
         if: github.event_name == 'push' && steps.changes.outputs.has_changes == 'true'
         run: |
-          sf project deploy start --source-dir force-app --wait 30 --target-org ci
+          echo "${{ steps.changes.outputs.files }}" | xargs -I {} sf project deploy start --source-dir {} --wait 30 --target-org ci
 
       - name: Cleanup
         if: always()
