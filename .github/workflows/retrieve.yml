@@ -1,0 +1,64 @@
+name: Retrieve metadata from Salesforce
+
+on:
+  workflow_dispatch:
+
+jobs:
+  retrieve:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install Salesforce CLI
+        run: npm install -g @salesforce/cli
+
+      - name: Auth to Salesforce
+        run: |
+          echo "${{ secrets.SF_SERVER_KEY }}" | base64 -d > server.key
+          sf org login jwt \
+            --client-id ${{ secrets.SF_CONSUMER_KEY }} \
+            --jwt-key-file server.key \
+            --username ${{ secrets.SF_USERNAME }} \
+            --instance-url ${{ secrets.SF_INSTANCE_URL }} \
+            --set-default \
+            --alias ci
+
+      - name: Create branch from main
+        run: |
+          BRANCH="retrieve/$(date -u +%Y%m%d-%H%M%S)"
+          echo "BRANCH=$BRANCH" >> $GITHUB_ENV
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git fetch origin main
+          git checkout -b "$BRANCH" origin/main
+
+      - name: Retrieve metadata
+        run: sf project retrieve start --target-org ci --wait 30
+
+      - name: Check for changes
+        id: diff
+        run: |
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "has_changes=true" >> $GITHUB_OUTPUT
+          else
+            echo "has_changes=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Commit and push
+        if: steps.diff.outputs.has_changes == 'true'
+        run: |
+          git add -A
+          git commit -m "chore: retrieve metadata from Salesforce"
+          git push -u origin "$BRANCH"
+          echo "Branch $BRANCH created."
+
+      - name: No changes
+        if: steps.diff.outputs.has_changes == 'false'
+        run: echo "No metadata changes detected. Nothing to commit."
+
+      - name: Cleanup
+        if: always()
+        run: rm -f server.key
