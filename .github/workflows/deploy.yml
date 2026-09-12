@@ -12,13 +12,6 @@ jobs:
         with:
           fetch-depth: 2
 
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: npm
-
-      - run: npm ci
-
       - name: Install Salesforce CLI
         run: npm install -g @salesforce/cli
 
