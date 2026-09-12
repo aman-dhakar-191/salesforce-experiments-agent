@@ -46,3 +46,7 @@ $RECYCLE.BIN/
 **/__pycache__/
 **/.venv/
 **/venv/
+
+# CI certificates
+server.key
+server.crt
