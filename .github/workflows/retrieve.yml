@@ -3,6 +3,9 @@ name: Retrieve metadata from Salesforce
 on:
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   retrieve:
     runs-on: ubuntu-latest
