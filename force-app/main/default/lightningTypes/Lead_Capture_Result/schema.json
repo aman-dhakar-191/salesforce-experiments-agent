@@ -1,0 +1,5 @@
+{
+  "description" : "Result information returned after creating a Salesforce Lead.",
+  "lightning:type" : "@apexClassType/c__LeadCaptureAction$LeadOutput",
+  "title" : "Lead Capture Result"
+}

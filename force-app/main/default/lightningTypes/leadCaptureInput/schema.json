@@ -1,0 +1,5 @@
+{
+  "description" : "Structured input containing the information required to create a Salesforce Lead, including name, company, contact information, job details, and location.",
+  "lightning:type" : "@apexClassType/c__LeadCaptureAction$LeadInput",
+  "title" : "Lead Capture Input"
+}

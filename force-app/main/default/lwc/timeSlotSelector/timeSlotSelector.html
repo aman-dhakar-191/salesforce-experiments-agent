@@ -1,0 +1,60 @@
+<template>
+    <lightning-card title="Select Meeting Time">
+        <div class="slds-p-around_medium">
+
+            <lightning-input
+                type="date"
+                label="Select Date"
+                value={selectedDate}
+                onchange={handleDateChange}>
+            </lightning-input>
+
+            <div class="slds-m-top_medium">
+
+                <p class="slds-form-element__label">
+                    Select Time
+                </p>
+
+                <lightning-button-group>
+                    <lightning-button
+                        label="09:00 AM"
+                        data-time="09:00"
+                        onclick={handleTimeChange}>
+                    </lightning-button>
+
+                    <lightning-button
+                        label="11:00 AM"
+                        data-time="11:00"
+                        onclick={handleTimeChange}>
+                    </lightning-button>
+
+                    <lightning-button
+                        label="02:00 PM"
+                        data-time="14:00"
+                        onclick={handleTimeChange}>
+                    </lightning-button>
+
+                    <lightning-button
+                        label="04:00 PM"
+                        data-time="16:00"
+                        onclick={handleTimeChange}>
+                    </lightning-button>
+                </lightning-button-group>
+
+            </div>
+
+            <template if:true={selectedDate}>
+                <div class="slds-m-top_medium">
+                    <p>
+                        <strong>Date:</strong> {selectedDate}
+                    </p>
+
+                    <p>
+                        <strong>Time:</strong> {selectedTime}
+                    </p>
+                </div>
+            </template>
+
+        </div>
+    </lightning-card>
+</template>

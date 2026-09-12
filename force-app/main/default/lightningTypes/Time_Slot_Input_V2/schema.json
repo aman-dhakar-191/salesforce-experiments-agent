@@ -1,0 +1,5 @@
+{
+  "description" : "Structured input for selecting a meeting date and time slot.",
+  "lightning:type" : "@apexClassType/c__TimeSlotInput",
+  "title" : "Time Slot Input V2"
+}

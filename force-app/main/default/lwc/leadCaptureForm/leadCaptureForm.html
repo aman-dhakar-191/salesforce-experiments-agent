@@ -1,0 +1,93 @@
+<template>
+
+    <lightning-card title="Capture Lead Details">
+
+        <div class="slds-p-around_medium">
+
+            <lightning-input
+                label="First Name"
+                name="firstName"
+                value={firstName}
+                onchange={handleChange}
+                required>
+            </lightning-input>
+
+            <lightning-input
+                label="Last Name"
+                name="lastName"
+                value={lastName}
+                onchange={handleChange}
+                required>
+            </lightning-input>
+
+            <lightning-input
+                label="Company"
+                name="company"
+                value={company}
+                onchange={handleChange}
+                required>
+            </lightning-input>
+
+            <lightning-input
+                type="email"
+                label="Email"
+                name="email"
+                value={email}
+                onchange={handleChange}>
+            </lightning-input>
+
+            <lightning-input
+                type="tel"
+                label="Phone"
+                name="phone"
+                value={phone}
+                onchange={handleChange}>
+            </lightning-input>
+
+            <lightning-input
+                label="Job Title"
+                name="title"
+                value={title}
+                onchange={handleChange}>
+            </lightning-input>
+
+            <lightning-input
+                label="Industry"
+                name="industry"
+                value={industry}
+                onchange={handleChange}>
+            </lightning-input>
+
+            <lightning-input
+                label="City"
+                name="city"
+                value={city}
+                onchange={handleChange}>
+            </lightning-input>
+
+            <lightning-input
+                label="State"
+                name="state"
+                value={state}
+                onchange={handleChange}>
+            </lightning-input>
+
+            <lightning-input
+                label="Country"
+                name="country"
+                value={country}
+                onchange={handleChange}>
+            </lightning-input>
+
+            <lightning-textarea
+                label="Description"
+                name="description"
+                value={description}
+                onchange={handleChange}>
+            </lightning-textarea>
+
+        </div>
+
+    </lightning-card>
+
+</template>

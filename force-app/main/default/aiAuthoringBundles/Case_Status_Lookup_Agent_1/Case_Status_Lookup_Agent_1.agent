@@ -1,0 +1,234 @@
+system:
+    instructions: "Ask for a Case Number or Contact Email, then report the Case Status and Owner."
+    messages:
+        welcome: |
+            Hi! I can look up your Case status and owner using a Case Number or a Contact Email.
+        error: "Sorry, it looks like something has gone wrong."
+
+config:
+    developer_name: "Case_Status_Lookup_Agent"
+    agent_label: "Case Status Lookup Agent"
+    description: "Agent that asks for a Case Number or Contact Email and reports the Case Status and Owner."
+
+config:
+    developer_name: "Case_Status_Lookup_Agent"
+    agent_label: "Case Status Lookup Agent"
+    description: "Agent that asks for a Case Number or Contact Email and reports the Case Status and Owner."
+
+access:
+    default_agent_user: "case_status@00dak000017tj9r182860480.ext"
+language:
+    default_locale: "en_US"
+    additional_locales: ""
+    all_additional_locales: False
+
+variables:
+    case_number: mutable string
+        description: "Holds the user-provided Case Number"
+    contact_email: mutable string
+        description: "Holds the user-provided Contact Email"
+    case_status: mutable string
+        description: "Stores the retrieved Case Status"
+    case_owner: mutable string
+        description: "Stores the retrieved Case Owner Name"
+    case_found: mutable boolean = False
+        description: "True if the last lookup returned a matching Case"
+    user_welcomed: mutable boolean = False
+        description: "Tracks whether the user has been welcomed to keep intro minimal"
+    last_error: mutable string
+        description: "Stores the latest error message, if any"
+
+knowledge:
+    rag_feature_config_id: ""
+    citations_url: ""
+    citations_enabled: False
+
+start_agent agent_router:
+    label: "Agent Router"
+    description: "Routes the user to input capture first, then to lookup and reporting."
+    model_config:
+        model: "model://sfdc_ai__DefaultEinsteinHyperClassifier"
+    reasoning:
+        instructions:
+            | Select the best tool to call based on conversation history and user's intent.
+              Always route to capture_inputs first to collect a Case Number or Contact Email.
+        actions:
+            go_to_capture_inputs: @utils.transition to @subagent.capture_inputs
+                description: "Transition to collect Case Number or Contact Email"
+            go_to_escalation: @utils.transition to @subagent.escalation
+                description: "Transition to the escalation subagent to handle the request."
+
+subagent capture_inputs:
+    label: "Capture Inputs"
+    description: "Collect Case Number or Contact Email from user and normalize input"
+    reasoning:
+        instructions:
+            | Please provide either your Case Number or the Contact Email associated with the case. If you'd prefer to speak with a human, use the escalation option.
+            # Reset prior lookup state so repeat lookups don't reuse stale inputs
+            set @variables.case_number = None
+            set @variables.contact_email = None
+            set @variables.case_found = False
+            set @variables.case_status = None
+            set @variables.case_owner = None
+            if @variables.case_number is None and @variables.contact_email is None:
+                | Share your Case Number (if you have it) or the Contact Email.
+            else:
+                transition to @subagent.lookup_case
+        actions:
+            set_case_number: @utils.setVariables
+                description: "Set the case number captured from the user's input"
+                with case_number=...
+            set_contact_email: @utils.setVariables
+                description: "Set the contact email captured from the user's input"
+                with contact_email=...
+            go_to_lookup_case: @utils.transition to @subagent.lookup_case
+                description: "Proceed to look up the case once we have either case number or contact email"
+            go_to_escalation: @utils.transition to @subagent.escalation
+                description: "Transition to the escalation subagent to handle the request."
+
+subagent lookup_case:
+    label: "Lookup Case"
+    description: "Retrieve Case by Case Number or by Contact Email"
+    reasoning:
+        instructions:
+            | Use the appropriate retrieval method based on which input was provided.
+            if @variables.case_number is None and @variables.contact_email is None:
+                transition to @subagent.capture_inputs
+            if @variables.case_number is not None:
+                run @actions.find_case_by_number
+                    with CaseNumber=@variables.case_number
+                set @variables.case_status = @outputs.status
+                set @variables.case_owner = @outputs.ownerName
+                set @variables.case_found = @outputs.found
+            else:
+                run @actions.find_latest_case_by_email
+                    with ContactEmail=@variables.contact_email
+                set @variables.case_status = @outputs.status
+                set @variables.case_owner = @outputs.ownerName
+                set @variables.case_found = @outputs.found
+            if @variables.case_found == False:
+                set @variables.last_error = "Case not found"
+                transition to @subagent.capture_inputs
+            else:
+                transition to @subagent.report_status
+        actions:
+            tool_find_case_by_number: @actions.find_case_by_number
+                with CaseNumber=...
+            tool_find_latest_case_by_email: @actions.find_latest_case_by_email
+                with ContactEmail=...
+            go_to_capture_inputs: @utils.transition to @subagent.capture_inputs
+                description: "Return to input collection if we lack inputs"
+            set_variables: @utils.setVariables
+                description: "Set variables as needed"
+
+
+
+    actions:
+        find_case_by_number:
+            description: "Find a Case by CaseNumber; returns at most one Case record"
+            target: "apex://CaseLookupByNumber"
+            inputs:
+                CaseNumber: string
+                    label: "Case Number"
+                    description: "The Case Number to look up, e.g. 00001234"
+                    is_required: True
+                    complex_data_type_name: "lightning__textType"
+            outputs:
+                caseId: string
+                    label: "Case Id"
+                    description: "The record Id of the matched Case; null if no Case was found"
+                    complex_data_type_name: "lightning__textType"
+                    is_displayable: False
+                    filter_from_agent: False
+                caseNumber: string
+                    label: "Case Number"
+                    description: "The Case Number of the matched Case"
+                    complex_data_type_name: "lightning__textType"
+                    is_displayable: False
+                    filter_from_agent: False
+                found: boolean
+                    label: "Found"
+                    description: "True if a matching Case was found, false otherwise"
+                    complex_data_type_name: "lightning__booleanType"
+                    is_displayable: False
+                    filter_from_agent: False
+                ownerName: string
+                    label: "Owner Name"
+                    description: "The name of the Case owner (User or Queue); \"Unknown\" if unavailable"
+                    complex_data_type_name: "lightning__textType"
+                    is_displayable: False
+                    filter_from_agent: False
+                status: string
+                    label: "Status"
+                    description: "The current Status of the Case, e.g. New, Working, Closed"
+                    complex_data_type_name: "lightning__textType"
+                    is_displayable: False
+                    filter_from_agent: False
+
+        find_latest_case_by_email:
+            description: "Find the most recent Case for a given Contact Email; returns one record ordered by CreatedDate desc"
+            target: "apex://CaseLookupByEmail"
+            inputs:
+                ContactEmail: string
+                    label: "Contact Email"
+                    description: "The Contact email address to search Cases by, e.g. jane@example.com"
+                    is_required: True
+                    complex_data_type_name: "lightning__textType"
+            outputs:
+                caseId: string
+                    label: "Case Id"
+                    description: "The record Id of the most recent matched Case; null if none found"
+                    complex_data_type_name: "lightning__textType"
+                    is_displayable: False
+                    filter_from_agent: False
+                caseNumber: string
+                    label: "Case Number"
+                    description: "The Case Number of the most recent matched Case"
+                    complex_data_type_name: "lightning__textType"
+                    is_displayable: False
+                    filter_from_agent: False
+                found: boolean
+                    label: "Found"
+                    description: "True if a matching Case was found, false otherwise"
+                    complex_data_type_name: "lightning__booleanType"
+                    is_displayable: False
+                    filter_from_agent: False
+                ownerName: string
+                    label: "Owner Name"
+                    description: "The name of the Case owner (User or Queue); \"Unknown\" if unavailable"
+                    complex_data_type_name: "lightning__textType"
+                    is_displayable: False
+                    filter_from_agent: False
+                status: string
+                    label: "Status"
+                    description: "The current Status of the Case, e.g. New, Working, Closed"
+                    complex_data_type_name: "lightning__textType"
+                    is_displayable: False
+                    filter_from_agent: False
+
+subagent report_status:
+    label: "Report Status"
+    description: "Report case status and owner back to the user, with safety for missing fields"
+    reasoning:
+        instructions:
+            | Provide the case status and owner to the user when available, or guide them to try again. If the user asks for a human, use the escalation option.
+            if @variables.case_found == False:
+                | I couldn't find a case with the provided information. Would you like to try again with a different Case Number or Contact Email?
+                transition to @subagent.capture_inputs
+            else:
+                | Case status is "{!@variables.case_status}", and the owner is "{!@variables.case_owner}". Would you like to look up another case?
+        actions:
+            go_to_capture_inputs: @utils.transition to @subagent.capture_inputs
+                description: "Start another lookup by collecting inputs again"
+            go_to_escalation: @utils.transition to @subagent.escalation
+                description: "Transition to the escalation subagent to handle the request."
+
+subagent escalation:
+    label: "Escalation"
+    description: "Escalate the conversation to a human agent or create a follow-up case"
+    reasoning:
+        instructions:
+            | Transitioning to a human agent for assistance.
+        actions:
+            escalate_to_human: @utils.escalate
+                description: "Escalate the conversation to a human agent."

@@ -1,0 +1,61 @@
+<template>
+
+    <lightning-card>
+
+        <div class="result-container">
+
+            <template if:true={success}>
+
+                <div class="success-header">
+                    <lightning-icon
+                        icon-name="utility:success"
+                        alternative-text="Success"
+                        size="small">
+                    </lightning-icon>
+
+                    <h2>Lead Created Successfully</h2>
+                </div>
+
+                <div class="lead-details">
+
+                    <div class="detail-row">
+                        <span class="label">Lead Name</span>
+                        <span class="value">{leadName}</span>
+                    </div>
+
+                    <div class="detail-row">
+                        <span class="label">Lead ID</span>
+                        <span class="value">{leadId}</span>
+                    </div>
+
+                </div>
+
+                <div class="message">
+                    {message}
+                </div>
+
+            </template>
+
+            <template if:false={success}>
+
+                <div class="error-header">
+                    <lightning-icon
+                        icon-name="utility:error"
+                        alternative-text="Error"
+                        size="small">
+                    </lightning-icon>
+
+                    <h2>Lead Creation Failed</h2>
+                </div>
+
+                <div class="message">
+                    {message}
+                </div>
+
+            </template>
+
+        </div>
+
+    </lightning-card>
+
+</template>

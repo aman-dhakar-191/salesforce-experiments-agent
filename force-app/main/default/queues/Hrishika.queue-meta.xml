@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Queue xmlns="http://soap.sforce.com/2006/04/metadata">
+    <doesIncludeBosses>false</doesIncludeBosses>
+    <doesSendEmailToMembers>false</doesSendEmailToMembers>
+    <name>Hrishika</name>
+    <queueMembers>
+        <users>
+            <user>aman.dhakar.84a780720c70@agentforce.com</user>
+        </users>
+    </queueMembers>
+    <queueRoutingConfig>AgentRoutingConfiguration</queueRoutingConfig>
+    <queueSobject>
+        <sobjectType>MessagingSession</sobjectType>
+    </queueSobject>
+</Queue>

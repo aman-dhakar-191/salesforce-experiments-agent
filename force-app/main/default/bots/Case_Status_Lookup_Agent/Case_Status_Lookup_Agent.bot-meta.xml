@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Bot xmlns="http://soap.sforce.com/2006/04/metadata">
+    <agentDSLEnabled>true</agentDSLEnabled>
+    <agentType>EinsteinServiceAgent</agentType>
+    <botMlDomain>
+        <label>Case Status Lookup Agent</label>
+        <name>Case_Status_Lookup_Agent</name>
+    </botMlDomain>
+    <botSource>None</botSource>
+    <botUser>case_status@00dak000017tj9r182860480.ext</botUser>
+    <description>Agent that asks for a Case Number or Contact Email and reports the Case Status and Owner.</description>
+    <label>Case Status Lookup Agent</label>
+    <logPrivateConversationData>false</logPrivateConversationData>
+    <richContentEnabled>true</richContentEnabled>
+    <sessionTimeout>0</sessionTimeout>
+    <type>ExternalCopilot</type>
+</Bot>
