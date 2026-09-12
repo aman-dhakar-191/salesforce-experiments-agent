@@ -3,6 +3,8 @@ name: Deploy to Salesforce
 on:
   push:
     branches: [main]
+  pull_request:
+    branches: [main]
 
 jobs:
   deploy:
@@ -10,7 +12,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 2
+          fetch-depth: 0
 
       - name: Install Salesforce CLI
         run: npm install -g @salesforce/cli
@@ -29,7 +31,11 @@ jobs:
       - name: Get changed files
         id: changes
         run: |
-          CHANGED=$(git diff --name-only HEAD~1 HEAD -- force-app/)
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            CHANGED=$(git diff --name-only origin/${{ github.base_ref }}...HEAD -- force-app/)
+          else
+            CHANGED=$(git diff --name-only HEAD~1 HEAD -- force-app/)
+          fi
           echo "files<<EOF" >> $GITHUB_OUTPUT
           echo "$CHANGED" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
@@ -39,15 +45,20 @@ jobs:
             echo "has_changes=false" >> $GITHUB_OUTPUT
           fi
 
-      - name: Deploy changed components
-        if: steps.changes.outputs.has_changes == 'true'
+      - name: Show changed files
         run: |
-          DIRS=$(echo "${{ steps.changes.outputs.files }}" \
-            | sed 's|/[^/]*$||' \
-            | sort -u \
-            | tr '\n' ' ')
-          echo "Deploying dirs: $DIRS"
-          sf project deploy start --source-dir $DIRS --wait 30 --target-org ci
+          echo "Changed files:"
+          echo "${{ steps.changes.outputs.files }}"
+
+      - name: Validate (dry run)
+        if: github.event_name == 'pull_request' && steps.changes.outputs.has_changes == 'true'
+        run: |
+          echo "${{ steps.changes.outputs.files }}" | xargs -I {} sf project deploy start --source-dir {} --dry-run --wait 30 --target-org ci
+
+      - name: Deploy changed components
+        if: github.event_name == 'push' && steps.changes.outputs.has_changes == 'true'
+        run: |
+          echo "${{ steps.changes.outputs.files }}" | xargs -I {} sf project deploy start --source-dir {} --wait 30 --target-org ci
 
       - name: Cleanup
         if: always()
