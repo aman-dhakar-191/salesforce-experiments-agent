@@ -23,7 +23,7 @@ jobs:
             --jwt-key-file server.key \
             --username ${{ secrets.SF_USERNAME }} \
             --instance-url ${{ secrets.SF_INSTANCE_URL }} \
-            --set-default-dev-hub \
+            --set-default \
             --alias ci
 
       - name: Get changed files

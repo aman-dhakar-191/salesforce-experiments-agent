@@ -3,6 +3,7 @@ import { refreshApex } from '@salesforce/apex';
 import getGreeting from '@salesforce/apex/HelloWorldController.getGreeting';
 
 export default class HelloWorld extends LightningElement {
+    // trigger CI deploy
     greeting;
     wiredGreetingResult;
 
