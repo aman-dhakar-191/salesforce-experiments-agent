@@ -3,6 +3,9 @@ name: Retrieve metadata from Salesforce
 on:
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   retrieve:
     runs-on: ubuntu-latest
@@ -36,7 +39,7 @@ jobs:
           git checkout -b "$BRANCH" origin/main
 
       - name: Retrieve metadata
-        run: sf project retrieve start --target-org ci --wait 30
+        run: sf project retrieve start --manifest manifest/package.xml --target-org ci --wait 30
 
       - name: Check for changes
         id: diff
