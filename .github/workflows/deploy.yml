@@ -32,9 +32,9 @@ jobs:
         id: changes
         run: |
           if [ "${{ github.event_name }}" = "pull_request" ]; then
-            CHANGED=$(git diff --name-only origin/${{ github.base_ref }}...HEAD -- force-app/ | grep -v '\.gitignore$')
+            CHANGED=$(git diff --name-only origin/${{ github.base_ref }}...HEAD -- force-app/ | grep -v '\.gitignore$' || true)
           else
-            CHANGED=$(git diff --name-only HEAD~1 HEAD -- force-app/ | grep -v '\.gitignore$')
+            CHANGED=$(git diff --name-only HEAD~1 HEAD -- force-app/ | grep -v '\.gitignore$' || true)
           fi
           echo "files<<EOF" >> $GITHUB_OUTPUT
           echo "$CHANGED" >> $GITHUB_OUTPUT
