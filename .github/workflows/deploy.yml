@@ -45,6 +45,11 @@ jobs:
             echo "has_changes=false" >> $GITHUB_OUTPUT
           fi
 
+      - name: Show changed files
+        run: |
+          echo "Changed files:"
+          echo "${{ steps.changes.outputs.files }}"
+
       - name: Validate (dry run)
         if: github.event_name == 'pull_request' && steps.changes.outputs.has_changes == 'true'
         run: |
