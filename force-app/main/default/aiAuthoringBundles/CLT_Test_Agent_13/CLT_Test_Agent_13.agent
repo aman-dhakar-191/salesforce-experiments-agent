@@ -73,23 +73,10 @@ start_agent agent_router:
         model: "model://sfdc_ai__DefaultEinsteinHyperClassifier"
     reasoning:
         instructions: ->
-            |**Determine the user's intent and select exactly one appropriate subagent. Always prioritize explicit intent over general or ambiguous wording.**
-             **Order Inquiries:** Route to **Order Inquiries** when the user wants to get, check, find, view, retrieve, display, or know information about an order, order status, order details, order number, order line items, delivery information, or cancellation of an order. **If the user provides an order number and asks anything about that order, always route to Order Inquiries.** For example, “get order 00000100”, “what is the status of order 00000100”, “show me order 00000100”, and “cancel order 00000100” must all route to Order Inquiries.
-             **Time Slot Test:** Route to **Time Slot Test** when the user wants to select, schedule, book, or arrange a meeting/date/time slot.
-             **Escalation:** Route to **Escalation** when the user explicitly asks to speak with a live agent, human agent, representative, or support person, or requests escalation.
-             **Ambiguous Question:** Route to **Ambiguous Question** when the user's request cannot be understood well enough to determine the appropriate supported intent.
-             **Off Topic:** Route to **Off Topic** when the request is clearly unrelated to orders, order support, scheduling/time slots, or supported general questions.
-             **General FAQ:** Route to **General FAQ** only when the user asks a general supported question that does not involve a specific order, order number, order action, scheduling/time slot, escalation, ambiguity, or off-topic request.
-             **Important routing priority:**
-             1. Escalation if the user explicitly requests a human/live agent.
-             2. Order Inquiries if an order number is provided or the request concerns a specific order/order action.
-             3. Time Slot Test if the request concerns booking/selecting/scheduling a time slot.
-             4. General FAQ for supported general questions.
-             5. Ambiguous Question if intent cannot be determined.
-             6. Off Topic if clearly unrelated.
-             **Do not route an order-related request to General FAQ merely because the wording resembles a general question. A specific order number is a strong signal that the request belongs to Order Inquiries.**
+            |Select the appropriate subagent based on the user's intent. If the user wants to get, view, check, find, display, or retrieve order details, an order, or order line items, route to the Get Order Test subagent. If the user provides an order number and asks for its details, route to the Get Order Test subagent. If the user wants to cancel an order or asks about cancelling an order, route to the Order Inquiries subagent. If the user wants to select, schedule, or book a meeting date or time, route to the Time Slot Test subagent. For questions about accounts, cases, reservations, deliveries, or other supported topics, route to the appropriate subagent. For general questions that do not match a supported topic, route to the appropriate general FAQ or off-topic subagent.
         actions:
             go_to_OrderInquiries: @utils.transition to @subagent.OrderInquiries
+                available when @variables.isVerified == True
             go_to_Time_Slot_Test: @utils.transition to @subagent.Time_Slot_Test
             go_to_GeneralFAQ: @utils.transition to @subagent.GeneralFAQ
             go_to_escalation: @utils.transition to @subagent.escalation
@@ -166,21 +153,14 @@ subagent OrderInquiries:
     description: "Handles questions related to a user’s order, order status, or order updates."
     reasoning:
         instructions: ->
-            |Your job is to test the Get Demo Order action and its Custom Lightning Type output.
-             When the user asks for a demo order, test order, sample order, or asks to see demo order information, ALWAYS use the Get Demo Order action.
-             Do not use Get Order By Order Number, Get Orders By Contact, Get Order Details, or any other order action for these demo requests.
-             If the user provides an order number, pass that value to the Order Number input of the Get Demo Order action.
-             If the user does not provide an order number, invoke Get Demo Order without an order number so that the action can return its default demo order.
-             After the action returns successfully, return the action output directly and allow the Custom Lightning Type renderer to display the result.
-             Do not convert the structured Get Demo Order output into a text summary. The purpose of this test is to verify that the Custom Lightning Type output is rendered correctly.
-             Example requests that MUST use Get Demo Order:
-             - "Show me a demo order"
-             - "Give me a test order"
-             - "Show a sample order"
-             - "Get demo order ORD-12345"
-             - "Test the custom lightning type"
-             - "Show me the demo order details"
-             For this test, prioritize invoking Get Demo Order whenever the user's request is related to testing or displaying the demo order.
+            | Your job is to answer general questions about orders, get order details, and cancel orders.
+            | When scheduling changes are requested, ask the customer for a date that they would like the delivery scheduled and look up available time slots.
+            | If a package is lost, immediately escalate the issue to a live agent.
+            | Convert dates to YYYY-MM-DD for the customer, but do not request the customer to provide the dates in that format. Show dates in a user friendly way.
+            | If the customer is not known, always ask for their email address and get their Contact record before running any other actions.
+            | Use the {!@actions.AnswerQuestionsWithKnowledge}  action for answering general order questions.
+            | Acknowledge and validate user concerns with empathy and professionalism.
+            | If an order's status is delivered, deny cancellation of the order.
         actions:
             GetOrderByOrderNumber: @actions.GetOrderByOrderNumber
                 with contactRecord = ...
@@ -196,7 +176,7 @@ subagent OrderInquiries:
                 with citationsUrl = ...
                 with ragFeatureConfigId = ...
                 with citationsEnabled = ...
-            Get_Demo_Order: @actions.Get_Demo_Order
+            Get_Order_Details: @actions.Get_Order_Details
                 with orderNumber = ...
 
 
@@ -327,24 +307,64 @@ subagent OrderInquiries:
                     is_displayable: False
                     filter_from_agent: False
                     complex_data_type_name: "@apexClassType/AiCopilot__GenAiCitationInput"
-        Get_Demo_Order:
-            label: "Get_Demo_Order"
+        Get_Order_Details:
             description: |
-        
-                Get_Demo_Order
-            target: "apex://DemoOrderAction"
+                Gets order details using the order number.
+            label: "Get Order Details"
+            require_user_confirmation: False
+            include_in_progress_indicator: True
+            progress_indicator_message: "loading"
+            source: "Get_Order_Details"
+            target: "apex://GetOrderDetailsAction"
+                        
             inputs:
-                orderNumber: string
+                "orderNumber": string
+                    description: |
+                      The order number to retrieve.
                     label: "Order Number"
-                    description: "Order number used to retrieve the corresponding demo order details."
-                    is_required: False
+                    is_required: True
+                    is_user_input: False
+                        
             outputs:
-                orderResult: object
-                    label: "Order Result"
-                    description: "Complete demo order information returned by the action."
-                    complex_data_type_name: "c__DemoOrderResultV2"
-                    is_displayable: True
+                "accountName": string
+                    description: |
+                      The name of the account associated with the order.
+                    label: "Account Name"
+                    is_displayable: False
                     filter_from_agent: False
+                "effectiveDate": date
+                    description: |
+                      The date on which the order becomes effective.
+                    label: "Effective Date"
+                    is_displayable: False
+                    filter_from_agent: False
+                    complex_data_type_name: "lightning__dateType"
+                "lineItems": list[object]
+                    description: |
+                      The list of products and quantities included in the order.
+                    label: "Line Items"
+                    is_displayable: False
+                    filter_from_agent: False
+                    complex_data_type_name: "@apexClassType/c__GetOrderLineItem"
+                "orderNumber": string
+                    description: |
+                      The unique order number.
+                    label: "Order Number"
+                    is_displayable: False
+                    filter_from_agent: False
+                "status": string
+                    description: |
+                      The current status of the order.
+                    label: "Status"
+                    is_displayable: False
+                    filter_from_agent: False
+                "totalAmount": number
+                    description: |
+                      The total monetary amount of the order.
+                    label: "Total Amount"
+                    is_displayable: False
+                    filter_from_agent: False
+                    complex_data_type_name: "lightning__numberType"
 
 subagent escalation:
     label: "Escalation"

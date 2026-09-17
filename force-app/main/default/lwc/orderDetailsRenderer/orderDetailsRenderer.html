@@ -1,0 +1,29 @@
+<template>
+    <lightning-card title="Order Details">
+        <div class="slds-p-around_medium">
+
+            <p><strong>Order Number:</strong> {order.orderNumber}</p>
+            <p><strong>Status:</strong> {order.status}</p>
+            <p><strong>Effective Date:</strong> {order.effectiveDate}</p>
+            <p><strong>Total Amount:</strong> {order.totalAmount}</p>
+            <p><strong>Account:</strong> {order.accountName}</p>
+
+            <template if:true={order.lineItems}>
+                <div class="slds-m-top_medium">
+                    <strong>Order Items</strong>
+
+                    <template for:each={order.lineItems} for:item="item">
+                        <div key={item.productCode} class="item">
+                            <p><strong>{item.productName}</strong></p>
+                            <p>Product Code: {item.productCode}</p>
+                            <p>Quantity: {item.quantity}</p>
+                            <p>Unit Price: {item.unitPrice}</p>
+                            <p>Total: {item.totalPrice}</p>
+                        </div>
+                    </template>
+                </div>
+            </template>
+
+        </div>
+    </lightning-card>
+</template>

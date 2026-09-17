@@ -1,0 +1,18 @@
+{
+  "renderer" : {
+    "componentOverrides" : {
+      "$" : {
+        "definition" : "c/orderDetailsRenderer"
+      }
+    }
+  },
+  "collection" : {
+    "renderer" : {
+      "componentOverrides" : {
+        "$" : {
+          "definition" : "c/orderDetailsRenderer"
+        }
+      }
+    }
+  }
+}

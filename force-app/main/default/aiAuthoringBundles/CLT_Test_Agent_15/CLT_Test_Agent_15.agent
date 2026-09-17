@@ -343,7 +343,7 @@ subagent OrderInquiries:
                     label: "Order Result"
                     description: "Complete demo order information returned by the action."
                     complex_data_type_name: "c__DemoOrderResultV2"
-                    is_displayable: True
+                    is_displayable: False
                     filter_from_agent: False
 
 subagent escalation:

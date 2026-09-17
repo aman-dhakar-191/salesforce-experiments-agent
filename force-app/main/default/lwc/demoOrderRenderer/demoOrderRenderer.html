@@ -1,0 +1,54 @@
+<template>
+    <lightning-card title="Order Details" icon-name="standard:orders">
+
+        <div class="slds-p-around_medium">
+
+            <div class="slds-grid slds-wrap slds-gutters">
+
+                <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2">
+                    <div class="field">
+                        <span class="label">Order Number</span>
+                        <span class="value">{value.orderNumber}</span>
+                    </div>
+                </div>
+
+                <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2">
+                    <div class="field">
+                        <span class="label">Customer</span>
+                        <span class="value">{value.customerName}</span>
+                    </div>
+                </div>
+
+                <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2">
+                    <div class="field">
+                        <span class="label">Status</span>
+                        <span class="value">{value.status}</span>
+                    </div>
+                </div>
+
+                <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2">
+                    <div class="field">
+                        <span class="label">Total Amount</span>
+                        <span class="value">
+                            ₹{value.totalAmount}
+                        </span>
+                    </div>
+                </div>
+
+                <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2">
+                    <div class="field">
+                        <span class="label">Order Date</span>
+                        <span class="value">{value.orderDate}</span>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="message slds-m-top_medium">
+                {value.message}
+            </div>
+
+        </div>
+
+    </lightning-card>
+</template>
