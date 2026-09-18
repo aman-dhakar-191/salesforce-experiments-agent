@@ -1,0 +1,5 @@
+{
+  "description" : "Simple test input for LWC rendering.",
+  "lightning:type" : "@apexClassType/c__TestLwcInputAction$Request",
+  "title" : "Test LWC Input"
+}
