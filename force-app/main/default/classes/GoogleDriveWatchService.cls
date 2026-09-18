@@ -43,8 +43,7 @@ public with sharing class GoogleDriveWatchService {
 
     public static void createWatchChannel(String pageToken) {
 
-        String channelId = 'salesforce-drive-' +
-            String.valueOf(DateTime.now().getTime());
+        String channelId = System.Label.Google_Drive_Channel_Id;
 
 String webhookUrl =
     'https://orgfarm-abe6109e32-dev-ed.develop.my.salesforce-sites.com' +
@@ -64,12 +63,16 @@ String webhookUrl =
             'application/json'
         );
 
-        Map<String, Object> body =
-            new Map<String, Object>{
-                'id' => channelId,
-                'type' => 'web_hook',
-                'address' => webhookUrl
-            };
+		Long expiration =
+			DateTime.now().getTime() + 604800000L;
+
+		Map<String, Object> body =
+			new Map<String, Object>{
+				'id' => channelId,
+				'type' => 'web_hook',
+				'address' => webhookUrl,
+				'expiration' => expiration
+			};
 
         req.setBody(JSON.serialize(body));
 

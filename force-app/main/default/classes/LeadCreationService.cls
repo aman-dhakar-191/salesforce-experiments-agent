@@ -1,16 +1,14 @@
 public with sharing class LeadCreationService {
 
-    public static Lead createLead(
+    public static Lead buildLead(
         LeadExtractionService.LeadData leadData
     ) {
-
         if (leadData == null) {
             throw new LeadCreationException(
                 'Lead data cannot be null.'
             );
         }
 
-        // Salesforce Lead requires these fields.
         if (String.isBlank(leadData.lastName)) {
             throw new LeadCreationException(
                 'Last Name is required.'
@@ -32,12 +30,8 @@ public with sharing class LeadCreationService {
         newLead.Phone = leadData.phone;
         newLead.Description = leadData.description;
 
-        insert newLead;
-
         return newLead;
     }
 
-
-    public class LeadCreationException extends Exception {
-    }
+    public class LeadCreationException extends Exception {}
 }

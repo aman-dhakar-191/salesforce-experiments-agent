@@ -4,6 +4,10 @@
         <enabled>true</enabled>
         <externalCredentialPrincipal>GoogleDriveExternalCredential-GoogleDrivePrincipal</externalCredentialPrincipal>
     </externalCredentialPrincipalAccesses>
+    <externalCredentialPrincipalAccesses>
+        <enabled>true</enabled>
+        <externalCredentialPrincipal>OpenRouterExternalCredential-api-key</externalCredentialPrincipal>
+    </externalCredentialPrincipalAccesses>
     <hasActivationRequired>false</hasActivationRequired>
     <label>Google Drive Integration</label>
 </PermissionSet>
